@@ -8,8 +8,12 @@ import (
 )
 
 func main() {
+	rootfs := os.Getenv("ROOTFS_PATH")
+	if rootfs == "" {
+		rootfs = "/home/avirals554/go-dock/rootfs" // default fallback
+	}
 	if len(os.Args) > 1 && os.Args[1] == "child" {
-		if err := syscall.Chroot("/home/avirals554/go-dock/rootfs"); err != nil {
+		if err := syscall.Chroot(rootfs); err != nil {
 			fmt.Println("there was a problem with the chroot syscall ")
 			return
 		}
