@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	if os.Args[1] == "child" && len(os.Args) > 1 {
+	if len(os.Args) > 1 && os.Args[1] == "child" {
 		if err := syscall.Chroot("/home/avirals554/go-dock/rootfs"); err != nil {
 			fmt.Println("there was a problem with the chroot syscall ")
 			return
