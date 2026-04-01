@@ -8,66 +8,84 @@ import (
 )
 
 func main() {
-	rootfs := os.Getenv("ROOTFS_PATH")
-	if rootfs == "" {
-		rootfs = "/home/avirals554/go-dock/rootfs" // default fallback
+	home, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Println("couldn't find home path")
 	}
-	if len(os.Args) > 1 && os.Args[1] == "child" {
-		if err := syscall.Chroot(rootfs); err != nil {
-			fmt.Println("there was a problem with the chroot syscall ")
+	basePath := home + "/.go-dock"
+
+	if len(os.Args) < 2 {
+		fmt.Println(`
+go-dock - a container runtime
+
+Usage:
+  go-dock <command> [arguments]
+
+Commands:
+  run <image>    run a container with the given image
+
+Examples:
+  go-dock run alpine
+`)
+		return
+	}
+
+	switch os.Args[1] {
+	case "run":
+		imageName := os.Args[2]
+		rootfsPath := basePath + "/images/" + imageName
+		if _, err := os.Stat(rootfsPath); os.IsNotExist(err) {
+			fmt.Println("image not found, run: go-dock pull", imageName)
 			return
 		}
-		if err := syscall.Chdir("/"); err != nil {
-			fmt.Println(" there was a problem with the chdir syscall ")
-			return
-		}
-		os.MkdirAll("/sys/fs/cgroup", 0755)
-
-		if err := syscall.Mount("proc", "/proc", "proc", 0, ""); err != nil {
-			fmt.Println("there was a problem with the mount syscall ")
-			return
-		}
-		if err := syscall.Mount("cgroup2", "/sys/fs/cgroup", "cgroup2", 0, ""); err != nil {
-			fmt.Println("there was an error with the 2nd mount syscall ")
-			return
-		}
-		cmd := exec.Command("/bin/sh")
-
-		cmd.Stdin = os.Stdin
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-
-		err := cmd.Run()
-		if err != nil {
-			fmt.Println("there was some error ")
-		}
-	} else {
-		cmd := exec.Command("/proc/self/exe", "child")
-
+		cmd := exec.Command("/proc/self/exe", "child", rootfsPath)
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		cmd.SysProcAttr = &syscall.SysProcAttr{
 			Cloneflags: syscall.CLONE_NEWPID | syscall.CLONE_NEWNS | syscall.CLONE_NEWUTS,
 		}
-
 		if err := cmd.Start(); err != nil {
-			fmt.Println("there was an error with the command start thing ")
+			fmt.Println("failed to start container:", err)
 			return
 		}
 		id := cmd.Process.Pid
-		pidstr := fmt.Sprintf("%d", id)
-		os.WriteFile("/sys/fs/cgroup/mycontainer/cgroup.procs", []byte(pidstr), 0700)
+		pidStr := fmt.Sprintf("%d", id)
+		os.WriteFile("/sys/fs/cgroup/mycontainer/cgroup.procs", []byte(pidStr), 0700)
 		os.WriteFile("/sys/fs/cgroup/mycontainer/memory.max", []byte("10485760"), 0700)
-
 		err := cmd.Wait()
 		if err != nil {
-			panic(err)
+			fmt.Println("container exited with error:", err)
 		}
 
-		if err != nil {
-			fmt.Println("there was some error ")
+	case "child":
+		rootfsPath := os.Args[2]
+		if err := syscall.Chroot(rootfsPath); err != nil {
+			fmt.Println("chroot failed:", err)
+			return
+		}
+		if err := syscall.Chdir("/"); err != nil {
+			fmt.Println("chdir failed:", err)
+			return
+		}
+		os.MkdirAll("/sys/fs/cgroup", 0755)
+		if err := syscall.Mount("proc", "/proc", "proc", 0, ""); err != nil {
+			fmt.Println("mount proc failed:", err)
+			return
+		}
+		if err := syscall.Mount("cgroup2", "/sys/fs/cgroup", "cgroup2", 0, ""); err != nil {
+			fmt.Println("mount cgroup failed:", err)
+			return
+		}
+		cmd := exec.Command("/bin/sh")
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			fmt.Println("shell error:", err)
 		}
 
+	default:
+		fmt.Println("unknown command:", os.Args[1])
 	}
 }
