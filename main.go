@@ -5,19 +5,11 @@ import (
 	"os"
 	"os/exec"
 	"syscall"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("there was an error in lading the env file ")
-		return
-	}
-	chroot := os.Getenv("CHROOT_PATH")
 	if os.Args[1] == "child" {
-		if err := syscall.Chroot(chroot); err != nil {
+		if err := syscall.Chroot("/home/avirals554/go-dock/rootfs"); err != nil {
 			fmt.Println("there was a problem with the chroot syscall ")
 			return
 		}
