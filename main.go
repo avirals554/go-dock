@@ -9,12 +9,24 @@ import (
 
 func main() {
 	if os.Args[1] == "child" {
-		syscall.Chroot("/mycontainer/rootfs")
-		syscall.Chdir("/")
+	if err:=	syscall.Chroot("/mycontainer/rootfs"){
+		fmt.Println("there was a problem with the chroot syscall ")
+	return
+		}
+	if err:=	syscall.Chdir("/"){
+		fmt.Println(" there was a problem with the chdir syscall ")
+		return
+	}
 		os.MkdirAll("/sys/fs/cgroup", 0755)
 
-		syscall.Mount("proc", "/proc", "proc", 0, "")
-		syscall.Mount("cgroup2", "/sys/fs/cgroup", "cgroup2", 0, "")
+	if err:=	syscall.Mount("proc", "/proc", "proc", 0, ""){
+		fmt.Println("there was a problem with the mount syscall ")
+		return
+	}
+	if err:=	syscall.Mount("cgroup2", "/sys/fs/cgroup", "cgroup2", 0, ""){
+		fmt.Println("there was an error with the 2nd mount syscall ")
+		return
+	}
 		cmd := exec.Command("/bin/sh")
 
 		cmd.Stdin = os.Stdin
@@ -35,7 +47,9 @@ func main() {
 			Cloneflags: syscall.CLONE_NEWPID | syscall.CLONE_NEWNS | syscall.CLONE_NEWUTS,
 		}
 
-		err := cmd.Start()
+	if 	err := cmd.Start(){
+		fmt.Println("there was an error with the command start thing ")
+	}
 		id := cmd.Process.Pid
 		pidstr := fmt.Sprintf("%d", id)
 		os.WriteFile("/sys/fs/cgroup/mycontainer/cgroup.procs", []byte(pidstr), 0700)
