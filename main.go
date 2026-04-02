@@ -121,6 +121,7 @@ Examples:
 			case tar.TypeReg:
 				file, _ := os.Create(dest_path)
 				io.Copy(file, tarReader)
+				os.Chmod(dest_path, header.FileInfo().Mode())
 				file.Close()
 			case tar.TypeSymlink:
 				os.Symlink(header.Linkname, dest_path)
