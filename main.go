@@ -3,17 +3,47 @@ package main
 import (
 	"archive/tar"
 	"compress/gzip"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"os/exec"
 	"syscall"
+	"time"
 )
+
+type containers struct {
+	ID        string
+	ImageName string
+	PID       int
+	StartTime string
+	Status    string
+}
 
 var image = map[string]string{
 	"alpine":  "https://dl-cdn.alpinelinux.org/alpine/v3.19/releases/x86_64/alpine-minirootfs-3.19.0-x86_64.tar.gz",
 	"alpine3": "https://dl-cdn.alpinelinux.org/alpine/v3.18/releases/x86_64/alpine-minirootfs-3.18.0-x86_64.tar.gz",
+}
+
+func createcontainer(image string, pid int, path string) string {
+	id := fmt.Sprintf("%d", time.Now().UnixNano())
+	os.MkdirAll(path+"/containers/"+id, 0755)
+	process_status := " "
+
+	process, _ := os.FindProcess(pid)
+	err := process.Signal(syscall.Signal(0))
+	if err != nil {
+		process_status = "DEAD"
+	}
+	if err == nil {
+		process_status = "ALIVE"
+	}
+	container := containers{ID: id, ImageName: image, PID: pid, StartTime: time.Now().String(), Status: process_status}
+	container_data, _ := json.Marshal(container)
+	os.WriteFile(path+"/containers/"+id+"/config.json", container_data, 0644)
+	return id
+
 }
 
 func main() {
@@ -66,7 +96,7 @@ Examples:
 		if err != nil {
 			fmt.Println("container exited with error:", err)
 		}
-
+		createcontainer(os.Args[2], id, basePath)
 	case "child":
 		rootfsPath := os.Args[2]
 		if err := syscall.Chroot(rootfsPath); err != nil {
