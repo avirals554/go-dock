@@ -122,6 +122,8 @@ Examples:
 				file, _ := os.Create(dest_path)
 				io.Copy(file, tarReader)
 				file.Close()
+			case tar.TypeSymlink:
+				os.Symlink(header.Linkname, dest_path)
 
 			}
 
