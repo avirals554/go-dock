@@ -1,11 +1,19 @@
 package main
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"syscall"
 )
+
+var image = map[string]string{
+	"alpine": "https://dl-cdn.alpinelinux.org/alpine/v3.19/releases/x86_64/alpine-minirootfs-3.19.0-x86_64.tar.gz",
+}
 
 func main() {
 	home, err := os.UserHomeDir()
@@ -83,6 +91,39 @@ Examples:
 		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
 			fmt.Println("shell error:", err)
+		}
+	case "pull":
+		image_url, ok := image[os.Args[2]]
+		if ok {
+			fmt.Println("found the image ")
+		} else {
+			fmt.Println("the image was not found at all ")
+			return
+		}
+		raw_image, _ := http.Get(image_url)
+		gzReader, err := gzip.NewReader(raw_image.Body)
+		if err != nil {
+			fmt.Println("zip extraction failed ")
+		}
+		defer gzReader.Close()
+		tarReader := tar.NewReader(gzReader)
+
+		for {
+			header, err := tarReader.Next()
+			if err == io.EOF {
+				break
+			}
+			dest_path := basePath + "/images/" + os.Args[2] + "/" + header.Name
+			switch header.Typeflag {
+			case tar.TypeDir:
+				os.MkdirAll(dest_path, 0755)
+			case tar.TypeReg:
+				file, _ := os.Create(dest_path)
+				io.Copy(file, tarReader)
+				file.Close()
+
+			}
+
 		}
 
 	default:
