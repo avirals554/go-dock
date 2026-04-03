@@ -178,7 +178,7 @@ Examples:
 			data, _ := os.ReadFile(basePath + "/containers/" + entry.Name() + "/config.json")
 			var c containers
 			json.Unmarshal(data, &c)
-			fmt.Printf("%-20s %-10s %-10s %s\n", c.ID[:12], c.ImageName, c.Status, c.StartTime[:19])
+			fmt.Printf("%-20s %-10s %-10s %s\n", c.ID, c.ImageName, c.Status, c.StartTime)
 
 		}
 	case "kill":
