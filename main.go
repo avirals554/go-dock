@@ -186,7 +186,7 @@ Examples:
 			return
 		}
 
-		updateprocess(os.Args[2], basePath+"/containers/"+os.Args[2]+"/config.json")
+		updateprocess(basePath + "/containers/" + os.Args[2] + "/config.json")
 		fmt.Println("kill sucessful:", os.Args[2])
 
 	default:
