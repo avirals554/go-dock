@@ -90,5 +90,17 @@ Examples:
 
 	default:
 		fmt.Println("unknown command:", os.Args[1])
+		fmt.Println(`
+go-dock - a container runtime
+
+Usage:
+  go-dock <command> [arguments]
+
+Commands:
+  run <image>    run a container with the given image
+
+Examples:
+  go-dock run alpine
+`)
 	}
 }
