@@ -26,6 +26,14 @@ var image = map[string]string{
 	"alpine3": "https://dl-cdn.alpinelinux.org/alpine/v3.18/releases/x86_64/alpine-minirootfs-3.18.0-x86_64.tar.gz",
 }
 
+func updateprocess(path string) {
+	data, _ := os.ReadFile(path)
+	var c containers
+	json.Unmarshal(data, &c)
+	c.Status = "DEAD"
+	newData, _ := json.Marshal(c)
+	os.WriteFile(path, newData, 0644)
+}
 func createcontainer(image string, pid int, path string) string {
 	id := fmt.Sprintf("%d", time.Now().UnixNano())
 	os.MkdirAll(path+"/containers/"+id, 0755)
@@ -169,6 +177,17 @@ Examples:
 			fmt.Printf("%-20s %-10s %-10s %s\n", c.ID[:12], c.ImageName, c.Status, c.StartTime[:19])
 
 		}
+	case "kill":
+		var c containers
+		data, _ := os.ReadFile(basePath + "/containers/" + os.Args[2] + "/config.json")
+		json.Unmarshal(data, &c)
+		if err := syscall.Kill(c.PID, syscall.SIGKILL); err != nil {
+			fmt.Println("kill failed :", err)
+			return
+		}
+
+		updateprocess(os.Args[2], basePath+"/containers/"+os.Args[2]+"/config.json")
+		fmt.Println("kill sucessful:", os.Args[2])
 
 	default:
 		fmt.Println("unknown command:", os.Args[1])
