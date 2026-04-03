@@ -182,6 +182,7 @@ Examples:
 
 		}
 	case "kill":
+		updateprocess(basePath + "/containers/" + os.Args[2] + "/config.json")
 		var c containers
 		data, _ := os.ReadFile(basePath + "/containers/" + os.Args[2] + "/config.json")
 		json.Unmarshal(data, &c)
@@ -189,8 +190,6 @@ Examples:
 			fmt.Println("kill failed :", err)
 			return
 		}
-
-		updateprocess(basePath + "/containers/" + os.Args[2] + "/config.json")
 		fmt.Println("kill sucessful:", os.Args[2])
 
 	default:
