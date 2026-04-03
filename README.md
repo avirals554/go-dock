@@ -1,7 +1,6 @@
 # go-dock
 
 A container runtime built from scratch in Go using raw Linux kernel primitives.
-
 No Docker. No libraries. Just syscalls.
 
 ---
@@ -177,14 +176,14 @@ Images are stored as extracted root filesystems:
 ```
 ~/.go-dock/
     images/
-        alpine/          ← go-dock pull alpine extracts here
+        alpine/          <- go-dock pull alpine extracts here
             bin/
             etc/
             lib/
             ...
     containers/
         <id>/
-            config.json  ← created when container starts
+            config.json  <- created when container starts
 ```
 
 ### Container tracking
@@ -210,11 +209,11 @@ when the container exits or is killed.
 
 ```
 go-dock/
-    main.go        ← CLI entry point, reads os.Args, routes to functions
-    container.go   ← run, ps, kill, createcontainer, updateprocess
-    image.go       ← pull, image map, tar/gzip extraction
-    namespace.go   ← child mode, chroot, mount, syscalls
-    install.sh     ← installation script
+    main.go        <- CLI entry point, reads os.Args, routes to functions
+    container.go   <- run, ps, kill, createcontainer, updateprocess
+    image.go       <- pull, image map, tar/gzip extraction
+    namespace.go   <- child mode, chroot, mount, syscalls
+    install.sh     <- installation script
     README.md
 ```
 
@@ -282,19 +281,58 @@ Then run normally.
 
 ---
 
-## What's Next
+## Progress
+
+How far along is go-dock compared to a real container runtime?
 
 ```
-[ ] Network namespace      CLONE_NEWNET + veth pairs + bridge networking
-[ ] User namespace         CLONE_NEWUSER + uid/gid mapping
-[ ] pivot_root             More secure alternative to chroot
-[ ] Short ID matching      Accept first 12 chars in kill/stop
-[ ] go-dock images         List downloaded images
-[ ] go-dock rm <id>        Delete container record from disk
-[ ] Image layers           Overlayfs for copy-on-write filesystems
-[ ] CI/CD                  GitHub Actions auto-build on push
-[ ] Port mapping           Forward host ports into container network
+Core isolation
+  [x] PID namespace          container sees only its own processes
+  [x] Mount namespace        container has its own filesystem view
+  [x] UTS namespace          container has its own hostname
+  [x] chroot                 container gets its own root filesystem
+  [x] /proc mount            ps and process tools work inside
+  [ ] Network namespace      container gets its own network stack
+  [ ] User namespace         container root maps to safe host user
+  [ ] pivot_root             more secure alternative to chroot
+
+Resource limits
+  [x] cgroups (code done)    memory.max and cpu limits written
+  [ ] cgroups (enforced)     needs bare metal Linux to actually work
+
+Image management
+  [x] pull                   download and extract rootfs from CDN
+  [x] image map              named images with download URLs
+  [ ] go-dock images         list downloaded images
+  [ ] ARM64 support          add ARM64 URLs to image map
+  [ ] OCI registry           pull from Docker Hub / real registries
+  [ ] image layers           overlayfs copy-on-write like real Docker
+
+Container lifecycle
+  [x] run                    start an isolated container
+  [x] ps                     list containers with status
+  [x] kill                   stop a running container
+  [x] container tracking     config.json saved per container
+  [x] auto status update     DEAD set on exit and kill
+  [ ] go-dock rm             delete container record from disk
+  [ ] short ID matching      accept first 12 chars like Docker does
+
+CLI and distribution
+  [x] named commands         go-dock run / pull / ps / kill
+  [x] usage message          helpful output when no args given
+  [x] refactored codebase    split into container.go image.go namespace.go
+  [ ] install script         one-line install like get.docker.com
+  [ ] binary releases        pre-built binaries on GitHub Releases
+  [ ] CI/CD                  auto-build on every git push
+
+Networking (not started)
+  [ ] network namespace      CLONE_NEWNET
+  [ ] veth pairs             virtual ethernet between container and host
+  [ ] bridge networking      containers talk to each other
+  [ ] port mapping           forward host ports into container
 ```
+
+**Overall: ~55% of a minimal container runtime**
 
 ---
 
@@ -328,4 +366,4 @@ Then run normally.
 
 ---
 
-*Built from first principles. No magic.*
+future version me can look at the notes appendix:I:HOP:85
