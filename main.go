@@ -27,12 +27,14 @@ var image = map[string]string{
 }
 
 func updateprocess(path string) {
+
 	data, _ := os.ReadFile(path)
 	var c containers
 	json.Unmarshal(data, &c)
 	c.Status = "DEAD"
 	newData, _ := json.Marshal(c)
 	os.WriteFile(path, newData, 0644)
+	fmt.Println("the update process function is being called ")
 }
 func createcontainer(image string, pid int, path string) string {
 	id := fmt.Sprintf("%d", time.Now().UnixNano())
@@ -100,8 +102,9 @@ Examples:
 		pidStr := fmt.Sprintf("%d", id)
 		os.WriteFile("/sys/fs/cgroup/mycontainer/cgroup.procs", []byte(pidStr), 0700)
 		os.WriteFile("/sys/fs/cgroup/mycontainer/memory.max", []byte("10485760"), 0700)
-		createcontainer(os.Args[2], id, basePath)
+		containerID := createcontainer(os.Args[2], id, basePath)
 		err := cmd.Wait()
+		updateprocess(basePath + "/containers/" + containerID + "/config.json")
 		if err != nil {
 			fmt.Println("container exited with error:", err)
 		}
