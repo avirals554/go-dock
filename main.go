@@ -100,11 +100,12 @@ Examples:
 		pidStr := fmt.Sprintf("%d", id)
 		os.WriteFile("/sys/fs/cgroup/mycontainer/cgroup.procs", []byte(pidStr), 0700)
 		os.WriteFile("/sys/fs/cgroup/mycontainer/memory.max", []byte("10485760"), 0700)
+		createcontainer(os.Args[2], id, basePath)
 		err := cmd.Wait()
 		if err != nil {
 			fmt.Println("container exited with error:", err)
 		}
-		createcontainer(os.Args[2], id, basePath)
+
 	case "child":
 		rootfsPath := os.Args[2]
 		if err := syscall.Chroot(rootfsPath); err != nil {
