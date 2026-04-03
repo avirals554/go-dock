@@ -1,0 +1,36 @@
+package main
+
+import (
+	"fmt"
+	"os"
+	"os/exec"
+	"syscall"
+)
+
+func child(argument string) {
+	rootfsPath := argument
+	if err := syscall.Chroot(rootfsPath); err != nil {
+		fmt.Println("chroot failed:", err)
+		return
+	}
+	if err := syscall.Chdir("/"); err != nil {
+		fmt.Println("chdir failed:", err)
+		return
+	}
+	os.MkdirAll("/sys/fs/cgroup", 0755)
+	if err := syscall.Mount("proc", "/proc", "proc", 0, ""); err != nil {
+		fmt.Println("mount proc failed:", err)
+		return
+	}
+	if err := syscall.Mount("cgroup2", "/sys/fs/cgroup", "cgroup2", 0, ""); err != nil {
+		fmt.Println("mount cgroup failed:", err)
+		return
+	}
+	cmd := exec.Command("/bin/sh")
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		fmt.Println("shell error:", err)
+	}
+}
