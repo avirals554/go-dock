@@ -29,7 +29,7 @@ func updateprocess(path string) {
 	c.Status = "DEAD"
 	newData, _ := json.Marshal(c)
 	os.WriteFile(path, newData, 0644)
-	fmt.Println("the update process function is being called ")
+	// fmt.Println("the update process function is being called ")  -- no longer needed , it was made just for checking
 }
 func createcontainer(image string, pid int, path string) string {
 	id := fmt.Sprintf("%d", time.Now().UnixNano())
