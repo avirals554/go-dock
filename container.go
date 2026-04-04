@@ -24,6 +24,7 @@ func networking(id int) {
 	netlink.LinkSetUp(veth0)                // bring veth0 up
 	addr, _ := netlink.ParseAddr("192.168.1.1/24")
 	netlink.AddrAdd(veth0, addr) // assign IP to veth0
+
 }
 func kill(basePath string) {
 	updateprocess(basePath + "/containers/" + os.Args[2] + "/config.json")

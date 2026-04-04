@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/exec"
 	"syscall"
+
+	"github.com/vishvananda/netlink"
 )
 
 func child(argument string) {
@@ -26,6 +28,10 @@ func child(argument string) {
 		fmt.Println("mount cgroup failed:", err)
 		return
 	}
+	veth1, _ := netlink.LinkByName("veth1")
+	netlink.LinkSetUp(veth1)
+	addr, _ := netlink.ParseAddr("192.168.1.2/24")
+	netlink.AddrAdd(veth1, addr)
 	cmd := exec.Command("/bin/sh")
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
