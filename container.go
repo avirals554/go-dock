@@ -23,8 +23,10 @@ func networking(id int) {
 	netlink.LinkSetNsPid(veth1, id)         // move veth1 into container
 	netlink.LinkSetUp(veth0)                // bring veth0 up
 	addr, _ := netlink.ParseAddr("192.168.1.1/24")
-	netlink.AddrAdd(veth0, addr) // assign IP to veth0
-
+	netlink.AddrAdd(veth0, addr)                                     // assign IP to veth0
+	os.WriteFile("/proc/sys/net/ipv4/ip_forward", []byte("1"), 0644) //for the networking thing this is basically enabeling the ipforwards to recieve messages
+	exec.Command("iptables", "-t", "nat", "-A", "POSTROUTING",
+		"-s", "192.168.1.0/24", "-o", "eth0", "-j", "MASQUERADE").Run() // this is the nat thing it" maps " out the ips to each other
 }
 func kill(basePath string) {
 	updateprocess(basePath + "/containers/" + os.Args[2] + "/config.json")
@@ -70,6 +72,7 @@ func run(imageName string, basePath string) {
 	}
 	id := cmd.Process.Pid
 	pidStr := fmt.Sprintf("%d", id)
+
 	os.WriteFile("/sys/fs/cgroup/mycontainer/cgroup.procs", []byte(pidStr), 0700)
 	os.WriteFile("/sys/fs/cgroup/mycontainer/memory.max", []byte("10485760"), 0700)
 	containerID := createcontainer(imageName, id, basePath)
