@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"os/exec"
 	"syscall"
@@ -32,6 +33,10 @@ func child(argument string) {
 	netlink.LinkSetUp(veth1)
 	addr, _ := netlink.ParseAddr("192.168.1.2/24")
 	netlink.AddrAdd(veth1, addr)
+	route := &netlink.Route{
+		Gw: net.ParseIP("192.168.1.1"),
+	}
+	netlink.RouteAdd(route)
 	cmd := exec.Command("/bin/sh")
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
