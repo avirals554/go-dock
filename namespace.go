@@ -20,7 +20,8 @@ func child(argument string) {
 		fmt.Println("chdir failed:", err)
 		return
 	}
-	os.WriteFile("/etc/resolv.conf", []byte("nameserver 8.8.8.8\n"), 0644) // this is for addding the dns look up this checks the namesperver and finds the ip
+	os.WriteFile("/etc/resolv.conf", []byte("nameserver 8.8.8.8\nnameserver 1.1.1.1\n"), 0644) // this is for addding the dns look up this checks the namesperver and finds the ip this has 2 nameservers one of google and the other of cloudfare
+
 	os.MkdirAll("/sys/fs/cgroup", 0755)
 	if err := syscall.Mount("proc", "/proc", "proc", 0, ""); err != nil {
 		fmt.Println("mount proc failed:", err)
