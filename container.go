@@ -6,8 +6,25 @@ import (
 	"os"
 	"os/exec"
 	"syscall"
+
+	"github.com/vishvananda/netlink"
 )
 
+func networking(id int) {
+	veth := &netlink.Veth{
+		LinkAttrs: netlink.LinkAttrs{
+			Name: "veth0",
+		},
+		PeerName: "veth1",
+	}
+	netlink.LinkAdd(veth)                   // create pair first
+	veth0, _ := netlink.LinkByName("veth0") // then get veth0
+	veth1, _ := netlink.LinkByName("veth1") // and veth1
+	netlink.LinkSetNsPid(veth1, id)         // move veth1 into container
+	netlink.LinkSetUp(veth0)                // bring veth0 up
+	addr, _ := netlink.ParseAddr("192.168.1.1/24")
+	netlink.AddrAdd(veth0, addr) // assign IP to veth0
+}
 func kill(basePath string) {
 	updateprocess(basePath + "/containers/" + os.Args[2] + "/config.json")
 	var c containers
@@ -55,9 +72,11 @@ func run(imageName string, basePath string) {
 	os.WriteFile("/sys/fs/cgroup/mycontainer/cgroup.procs", []byte(pidStr), 0700)
 	os.WriteFile("/sys/fs/cgroup/mycontainer/memory.max", []byte("10485760"), 0700)
 	containerID := createcontainer(imageName, id, basePath)
+	networking(id)
 	err := cmd.Wait()
 	updateprocess(basePath + "/containers/" + containerID + "/config.json")
 	if err != nil {
 		fmt.Println("container exited with error:", err)
 	}
+
 }
