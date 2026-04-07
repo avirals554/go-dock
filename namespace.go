@@ -25,7 +25,7 @@ func child(argument string) {
 		fmt.Println("root error", err)
 		return
 	}
-	if err := syscall.Chdir("/home/user"); err != nil {
+	if err := syscall.Chdir("/"); err != nil {
 		fmt.Println("chdir failed:", err)
 		return
 	}
