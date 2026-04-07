@@ -22,7 +22,7 @@ func child(argument string) {
 		fmt.Println("root error", err)
 		return
 	}
-	if err := syscall.Mkdir("home/user", 0755); err != nil {
+	if err := os.MkdirAll("home/user", 0755); err != nil {
 		fmt.Println("root error", err)
 		return
 	}
