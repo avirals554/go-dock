@@ -21,7 +21,7 @@ func child(argument string) {
 		fmt.Println("chdir failed:", err)
 		return
 	}
-	if err := syscall.Mkdir("home", 0755); err != nil {
+	if err := os.MkdirAll("home", 0755); err != nil {
 		fmt.Println("root error", err)
 		return
 	}
