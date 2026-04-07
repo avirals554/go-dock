@@ -21,10 +21,10 @@ func child(argument string) {
 		fmt.Println("root error", err)
 		return
 	}
-	if err := syscall.Mkdir("home/user", 0755); err != nil {
-		fmt.Println("root error", err)
-		return
-	}
+	// if err := syscall.Mkdir("home/user", 0755); err != nil {
+	// 	fmt.Println("root error", err)
+	// 	return
+	// }
 	if err := syscall.Chdir("/"); err != nil {
 		fmt.Println("chdir failed:", err)
 		return
